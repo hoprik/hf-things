@@ -11,9 +11,9 @@ const port = process.env.APP_PORT || 3000;
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
-let mass = []
+let mass:any[] = []
 
-function isInMass(element, index, array, uuid) {
+function isInMass(element:any, index:any, array:any, uuid:any) {
     return element[0] === uuid
 }
 
@@ -23,18 +23,18 @@ app.prepare().then(() => {
     const io = new Server(httpServer);
 
 
-    io.on('connection', (socket) => {
-        socket.on("work",async(token)=>{
+    io.on('connection', (socket:any) => {
+        socket.on("work",async(token:any)=>{
             socket.emit("work", token.toUpperCase())
         })
 
-        socket.on("qrGet",async(token)=>{
+        socket.on("qrGet",async(token:any)=>{
             const uuid = v4();
             mass.push([uuid, socket])
             socket.emit("qrGet", uuid)
         })
 
-        socket.on("qrPost",async(uuid)=>{
+        socket.on("qrPost",async(uuid:any)=>{
             const answer = mass.find((element, index, array)=> isInMass(element, index, array, uuid))
             if (answer === undefined){
                 socket.emit("qrPost", "false")
@@ -50,7 +50,7 @@ app.prepare().then(() => {
     });
 
     httpServer
-        .once("error", (err) => {
+        .once("error", (err:any) => {
             console.error(err);
             process.exit(1);
         })
