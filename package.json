@@ -3,13 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon server.ts",
     "build": "next build",
-    "start": "nodemon server.js",
+    "start": "",
     "lint": "next lint"
   },
   "dependencies": {
+    "@hoprik/fastreq": "^1.0.4",
+    "@hoprik/helpfront": "^1.0.6",
+    "@hoprik/hoprikpay": "^1.0.7",
+    "@types/crypto-js": "^4.2.2",
+    "@uiw/react-textarea-code-editor": "^3.0.2",
+    "@yandex/smart-captcha": "2.6.0",
     "@yudiel/react-qr-scanner": "^2.0.1",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "html5-qrcode": "^2.3.8",
     "markdown-loader": "^8.0.0",
@@ -24,9 +31,10 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.14.2",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^9.0.8",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "typescript": "^5"

@@ -23,8 +23,9 @@ app.prepare().then(() => {
     const io = new Server(httpServer);
 
 
-    io.on('connection', (socket:any) => {
-        socket.on("work",async(token:any)=>{
+    io.on('connection', (socket: any) => {
+        io.in()
+        socket.on("work", async(token:any)=>{
             socket.emit("work", token.toUpperCase())
         })
 
