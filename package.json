@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon server.ts",
     "build": "next build",
-    "start": "",
+    "start": "nodemon server.ts",
     "lint": "next lint"
   },
   "dependencies": {
