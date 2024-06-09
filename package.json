@@ -9,9 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hoprik/fastreq": "^1.0.4",
-    "@hoprik/helpfront": "^1.0.6",
-    "@hoprik/hoprikpay": "^1.0.7",
     "@types/crypto-js": "^4.2.2",
     "@uiw/react-textarea-code-editor": "^3.0.2",
     "@yandex/smart-captcha": "2.6.0",
@@ -22,6 +19,7 @@
     "markdown-loader": "^8.0.0",
     "next": "14.2.3",
     "next-mdx-remote": "^5.0.0",
+    "nodemon": "^3.1.3",
     "qrcode.react": "^3.1.0",
     "react": "^18",
     "react-dom": "^18",
