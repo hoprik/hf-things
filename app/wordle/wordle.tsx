@@ -6,7 +6,7 @@ import { useKeyboard } from './hooks/useKeyboard';
  const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
 
 export default function Wordle(){
-    const [key, keyCode] = useKeyboard()
+    const {key, keyCode} = useKeyboard()
     const [cursor, setCursor] = useState(0)
     const [row, setRow] = useState(0)
     const [text, setText] = useState<[[string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string]]>([["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""]])
@@ -29,7 +29,7 @@ export default function Wordle(){
             console.log("Проверию на беке");
             
         }
-    }, [key])
+    }, [key, keyCode, row])
     return <>
         {new Array(6).fill(0).map((data, key) => {
             return (
