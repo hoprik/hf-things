@@ -6,64 +6,62 @@ import './wordle.css'
 const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
 const ROWS = 6
 const COLS = 5
-type TextType = { color: string; letter: string };
-type GameState = {"id": string, win: boolean}
+type ITextType = { color: string; letter: string };
+type IGameState = {id: string; win: boolean}
+type IAsk = {success: boolean, green: boolean[]; yellow: boolean[]}
 
 function getMass(length: number) {
     return new Array(length).fill(0)
 }
 export default function Wordle(){
-    const [texts, setTexts] = useState<TextType[][]>([[]]);
+    const [texts, setTexts] = useState<ITextType[][]>([[]]);
     const keyboardEvent = useKeyboard()
-    const gameState = useRef<GameState>({id: "", win: false});
+    const IGameState = useRef<IGameState>({id: "", win: false});
     const hasMounted = useRef(false);
 
     const getWord = (row: number)=>{
         let word = ""
-        texts[row].forEach(container=>word+=container["letter"])
+        texts[row].forEach(container=>word+=container.letter)
         return word
     }
-
 
     const logicGame = async (row: number,)=>{
         const items = texts.slice()
         const json = {
             word: getWord(row),
-            id: gameState.current["id"]
+            id: IGameState.current.id
         }
         const res = await fetch("wordle/api/ask", {
             method: "POST",
             body: JSON.stringify(json)
         })
         if (res.status !== 200) {
-            return [false, "error response: "+ res.status]
+            throw new Error(res.statusText)
         }
-        const ask = await res.json()
-        if (!ask["success"]){
+        const {success, green, yellow} = (await res.json()) as IAsk
+        if (!success){
             return [false, "Слово не нашел"]
         }
-        const green: [boolean, boolean, boolean, boolean, boolean] = ask["green"]
-        const yellow: [boolean, boolean, boolean, boolean, boolean]  = ask["yellow"]
 
         yellow.forEach((value, index, array)=>{
             if (value && green[index]){
-                items[row][index]["color"] = "green"
+                items[row][index].color = "green"
                 return
             }
             if (value){
-                items[row][index]["color"] = "yellow"
+                items[row][index].color = "yellow"
                 return;
             }
             if (!value || !green[index]){
-                items[row][index]["color"] = "gray"
+                items[row][index].color = "gray"
                 return;
             }
         })
 
         if (green.every(value => value)){
-            const settings = gameState.current
-            settings["win"] = true
-            gameState.current = settings
+            const settings = IGameState.current
+            settings.win = true
+            IGameState.current = settings
         }
 
         return [true, items]
@@ -75,24 +73,20 @@ export default function Wordle(){
             fetch("wordle/api/init", {
                 method: "POST"
             }).then(res => res.json().then(value => {
-                if (!value["success"]) {
-                    console.log("error response: " + res.status)
+                if (!value.success) {
                     return
                 }
-                const settings = gameState.current
-                settings["id"] = value["code"]
-                gameState.current = settings
-
+                const settings = IGameState.current
+                settings.id = value.code
+                IGameState.current = settings
             }))
         }
-    }, [gameState]);
+    }, [hasMounted, IGameState]);
 
     useEffect(()=>{
-        if (!keyboardEvent || gameState.current["win"]){
+        if (!keyboardEvent || IGameState.current.win){
             return
         }
-        console.log(texts)
-        console.log(gameState.current)
 
         const {key} = keyboardEvent
         let items = texts.slice()
@@ -100,7 +94,7 @@ export default function Wordle(){
 
         // добавили букву
         if (REG_EXP_RUS_WORD.test(key)){
-            items[row].push({"color": "", "letter": key})
+            items[row].push({color: "", letter: key})
         }
 
         // удаление буквы
@@ -110,27 +104,24 @@ export default function Wordle(){
 
         // слово написали полностью
         if (texts[row]?.length === COLS){
-            console.log("triger")
             logicGame(row).then(value => {
                 const [success, answer] = value
-                console.log("triger2")
                 if (success && typeof answer !== "string" && typeof answer !== "boolean"){
                     items = answer
                     items.push([])
-                    console.log(items)
                 }
                 else{
                     items[row] = []
-                    console.log(answer)
                 }
-                if (texts.length == ROWS && !gameState.current["win"]) setTimeout(()=>alert("Ты проиграл, ты лох!"), 1000)
-                if (gameState.current["win"]) setTimeout(()=>alert("Ты выйграл, ты не лох!"), 1000)
+                if (texts.length == ROWS && !IGameState.current.win) setTimeout(()=>alert("Ты проиграл, ты лох!"), 1000)
+                if (IGameState.current.win) setTimeout(()=>alert("Ты выйграл, ты не лох!"), 1000)
                 setTexts(items)
             })
             return;
         }
 
         setTexts(items)
+
     }, [keyboardEvent])
 
     return <>
