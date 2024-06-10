@@ -2,19 +2,17 @@ import {useEffect, useState } from "react";
 
 
 export function useKeyboard(){
-    const [userText, setUserText] = useState<{key: string, keyCode:number}>({key: "", keyCode:0})
-
-    const handleUserKeyPress = (event: KeyboardEvent) => {
-        const { key, keyCode } = event;
-        setUserText({key: key, keyCode: keyCode})
-    };
+    const [userText, setUserText] = useState<KeyboardEvent>()
 
     useEffect(() => {
+        const handleUserKeyPress = (event: KeyboardEvent) => setUserText(event);
+
         window.addEventListener("keydown", handleUserKeyPress);
+
         return () => {
             window.removeEventListener("keydown", handleUserKeyPress);
         };
-    });
+    }, []);
 
     return userText
 }

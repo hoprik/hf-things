@@ -1,44 +1,57 @@
 "use client"
 import { useEffect, useState } from 'react';
-import './wordle.css'
 import { useKeyboard } from './hooks/useKeyboard';
+import './wordle.css'
 
- const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
+const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
+const ROWS = 6
+const COLS = 5
+
+function getMass(length: number) {
+    return new Array(length).fill(0)
+}
 
 export default function Wordle(){
-    const {key, keyCode} = useKeyboard()
-    const [cursor, setCursor] = useState(0)
-    const [row, setRow] = useState(0)
-    const [text, setText] = useState<[[string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string]]>([["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""]])
+    const [texts, setTexts] = useState<string[][]>([[]])
+
+    const keyboardEvent = useKeyboard()
+
     useEffect(()=>{
+        if (!keyboardEvent){
+            return
+        }
+
+        const {key} = keyboardEvent
+        const items = texts.slice()
+        let row = items.length - 1
+
+        // добавили букву
         if (REG_EXP_RUS_WORD.test(key)){
-            const item = text.slice()
-            item[row][cursor] = key
-            // @ts-ignore
-            setText(item)
-            setCursor(cursor+1)
+            items[row].push(key)
         }
-        if (keyCode == 8){
-            const item = text.slice()
-            item[row][cursor-1] = ""
-            // @ts-ignore
-            setText(item)
-            setCursor(cursor-2)
+
+        // удаление буквы
+        if (key == "Backspace"){
+            items[row].pop()
         }
-        if (cursor == 5){
+
+        // слово написали полностью
+        if (texts[row]?.length === COLS){
+            items.push([])
             console.log("Проверию на беке");
-            
         }
-    }, [key, keyCode, row])
+
+        setTexts(items)
+    }, [keyboardEvent])
+
     return <>
-        {new Array(6).fill(0).map((data, key) => {
-            return (
-                <div className={`wordle_row adress`} key={key}>
-                    {new Array(5).fill(0).map((data2, key2) => {
-                        return <div className="wordle_item" key={key2}>{text[key][key2]}</div>;
-                    })}
-                </div>
-            );
-        })}
+        {getMass(ROWS).map((_, row) => (
+            <div className="wordle_row adress" key={row}>
+                {getMass(COLS).map((_, col) => {
+                    const hasItem = row < texts.length && col < texts[row].length
+                    return <div className="wordle_item" key={col}>{hasItem ? texts[row][col] : ""}</div>;
+                })}
+            </div>
+        ))}
     </>
 }
