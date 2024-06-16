@@ -1,44 +1,137 @@
 "use client"
-import { useEffect, useState } from 'react';
-import './wordle.css'
+import {useEffect, useRef, useState} from 'react';
 import { useKeyboard } from './hooks/useKeyboard';
+import './wordle.css'
 
- const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
+const REG_EXP_RUS_WORD = /[А-я][а-яё]*$/
+const ROWS = 6
+const COLS = 5
+type ITextType = { color: string; letter: string };
+type IGameState = {id: string; win: boolean}
+type IAsk = {success: boolean, green: boolean[]; yellow: boolean[]}
 
+function getMass(length: number) {
+    return new Array(length).fill(0)
+}
 export default function Wordle(){
-    const [key, keyCode] = useKeyboard()
-    const [cursor, setCursor] = useState(0)
-    const [row, setRow] = useState(0)
-    const [text, setText] = useState<[[string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string], [string, string, string, string, string]]>([["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""], ["", "", "", "", ""]])
+    const [texts, setTexts] = useState<ITextType[][]>([[]]);
+    const keyboardEvent = useKeyboard()
+    const IGameState = useRef<IGameState>({id: "", win: false});
+    const hasMounted = useRef(false);
+
+    const getWord = (row: number)=>{
+        let word = ""
+        texts[row].forEach(container=>word+=container.letter)
+        return word
+    }
+
+    const logicGame = async (row: number,)=>{
+        const items = texts.slice()
+        const json = {
+            word: getWord(row),
+            id: IGameState.current.id
+        }
+        const res = await fetch("wordle/api/ask", {
+            method: "POST",
+            body: JSON.stringify(json)
+        })
+        if (res.status !== 200) {
+            throw new Error(res.statusText)
+        }
+        const {success, green, yellow} = (await res.json()) as IAsk
+        if (!success){
+            return [false, "Слово не нашел"]
+        }
+
+        yellow.forEach((value, index, array)=>{
+            if (value && green[index]){
+                items[row][index].color = "green"
+                return
+            }
+            if (value){
+                items[row][index].color = "yellow"
+                return;
+            }
+            if (!value || !green[index]){
+                items[row][index].color = "gray"
+                return;
+            }
+        })
+
+        if (green.every(value => value)){
+            const settings = IGameState.current
+            settings.win = true
+            IGameState.current = settings
+        }
+
+        return [true, items]
+    }
+
+    useEffect(() => {
+        if (!hasMounted.current) {
+            hasMounted.current = true;
+            fetch("wordle/api/init", {
+                method: "POST"
+            }).then(res => res.json().then(value => {
+                if (!value.success) {
+                    return
+                }
+                const settings = IGameState.current
+                settings.id = value.code
+                IGameState.current = settings
+            }))
+        }
+    }, [hasMounted, IGameState]);
+
     useEffect(()=>{
+        if (!keyboardEvent || IGameState.current.win){
+            return
+        }
+
+        const {key} = keyboardEvent
+        let items = texts.slice()
+        let row = items.length - 1
+
+        // добавили букву
         if (REG_EXP_RUS_WORD.test(key)){
-            const item = text.slice()
-            item[row][cursor] = key
-            // @ts-ignore
-            setText(item)
-            setCursor(cursor+1)
+            items[row].push({color: "", letter: key})
         }
-        if (keyCode == 8){
-            const item = text.slice()
-            item[row][cursor-1] = ""
-            // @ts-ignore
-            setText(item)
-            setCursor(cursor-2)
+
+        // удаление буквы
+        if (key == "Backspace"){
+            items[row].pop()
         }
-        if (cursor == 5){
-            console.log("Проверию на беке");
-            
+
+        // слово написали полностью
+        if (texts[row]?.length === COLS){
+            logicGame(row).then(value => {
+                const [success, answer] = value
+                if (success && typeof answer !== "string" && typeof answer !== "boolean"){
+                    items = answer
+                    items.push([])
+                }
+                else{
+                    items[row] = []
+                }
+                if (texts.length == ROWS && !IGameState.current.win) setTimeout(()=>alert("Ты проиграл, ты лох!"), 1000)
+                if (IGameState.current.win) setTimeout(()=>alert("Ты выйграл, ты не лох!"), 1000)
+                setTexts(items)
+            })
+            return;
         }
-    }, [key])
+
+        setTexts(items)
+
+    }, [keyboardEvent])
+
     return <>
-        {new Array(6).fill(0).map((data, key) => {
-            return (
-                <div className={`wordle_row adress`} key={key}>
-                    {new Array(5).fill(0).map((data2, key2) => {
-                        return <div className="wordle_item" key={key2}>{text[key][key2]}</div>;
-                    })}
-                </div>
-            );
-        })}
+        {getMass(ROWS).map((_, row) => (
+            <div className="wordle_row adress" key={row}>
+                {getMass(COLS).map((_, col) => {
+                    const hasItem = row < texts.length && col < texts[row].length
+                    return <div className="wordle_item" style={{backgroundColor: hasItem? texts[row][col]["color"] : ""}} key={col}>{hasItem ? texts[row][col]["letter"] : ""}</div>;
+                })}
+            </div>
+        ))}
     </>
 }
