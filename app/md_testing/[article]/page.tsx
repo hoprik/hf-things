@@ -88,7 +88,7 @@ async function Page({params}: Props){
     const articleAuthors = await getArticleAuthors(articleData[0].name)
     return <>
         <div>Редактировали: {articleAuthors.map((value, index) => {
-            return <a key={index} href={value.html_url}><img src={value.avatar_url} alt={value.login} /></a>
+            return <a key={index} href={value.html_url}><img src={value.avatar_url} alt={value.login} title={value.login}/></a>
         })}</div>
         <MDXRemote source={sourceText}/>
     </>
