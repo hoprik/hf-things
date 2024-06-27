@@ -1,4 +1,4 @@
-import { openDB } from "@/mongoDB/general";
+import { openDB, closeDB } from "@/mongoDB/general";
 import Profile from "@/mongoDB/models/profiles"
 
 async function getProfile(id: string){
@@ -8,6 +8,8 @@ async function getProfile(id: string){
     if (!user){
         return "Ноу нейм";
     }
+
+    closeDB();
 
     return `${user["name"]} ${user["surname"]}`
 }
