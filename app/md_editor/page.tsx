@@ -28,11 +28,13 @@ export default function Page() {
     const [mdText, setMdText] = useState<string>('# Привет редактор!');
     const [subject, setSubject] = useState<string>("")
     const [theme, setTheme] = useState<string>("")
+    const [nameTheme, setNameTheme] = useState<string>("")
     const onSave = async (e: any)=>{
         const saveData = {
             mdText,
             subject,
-            theme
+            theme,
+            nameTheme
         }
         const res = await fetch("/md_editor/api", {
             method: "POST",
@@ -42,10 +44,12 @@ export default function Page() {
         console.log(json)
     }
     return <>
-        <div style={{display: "flex", height:"50px"}}>
+        <div style={{display: "flex", height: "50px"}}>
             <input placeholder="Предмет" onChange={e => setSubject(e.target.value)}/>
             <p>/</p>
             <input placeholder="Тема" onChange={e => setTheme(e.target.value)}/>
+            <p>/</p>
+            <input placeholder="Название урока" onChange={e => setNameTheme(e.target.value)}/>
         </div>
         <MdEditor modelValue={mdText} onChange={setMdText} language="ru" codeTheme="github" toolbarsExclude={toolbar}
                   noUploadImg={true} autoDetectCode={true} onSave={onSave}/>

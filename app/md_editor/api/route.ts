@@ -1,9 +1,10 @@
-import {promises as fs} from "fs";
+import {promises as fs, existsSync} from "fs";
 
 type ISaveData = {
     mdText: string,
     subject: string,
-    theme: string
+    theme: string,
+    nameTheme: string
 }
 
 function translit(word: string){
@@ -40,9 +41,17 @@ function translit(word: string){
 }
 
 export async function POST(req: Request){
-    const {mdText, subject, theme} = (await req.json()) as ISaveData;
-    await fs.mkdir(process.cwd() + '/public/'+translit(subject))
-    await fs.mkdir(process.cwd() + '/public/'+translit(subject)+"/"+translit(theme))
+    const {mdText, subject, theme, nameTheme} = (await req.json()) as ISaveData;
+    const infoFile = {
+        name: nameTheme
+    }
+    if (!existsSync(process.cwd() + '/public/'+translit(subject))){
+        await fs.mkdir(process.cwd() + '/public/'+translit(subject))
+    }
+    if (!existsSync(process.cwd() + '/public/'+translit(subject)+"/"+translit(theme))){
+        await fs.mkdir(process.cwd() + '/public/'+translit(subject)+"/"+translit(theme))
+    }
+    await fs.writeFile(process.cwd() + '/public/'+translit(subject)+"/"+translit(theme)+"/lesson.json", JSON.stringify(infoFile))
     await fs.writeFile(process.cwd() + '/public/'+translit(subject)+"/"+translit(theme)+"/lesson.md", mdText)
     return Response.json({"ok": true})
 }
